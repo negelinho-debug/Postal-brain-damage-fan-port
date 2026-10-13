@@ -1,0 +1,29 @@
+name: BrainDamageFan
+
+options:
+  bundleIdPrefix: com.negelinho
+  deploymentTarget:
+    iOS: "15.0"
+
+targets:
+  BrainDamageFan:
+    type: application
+    platform: iOS
+
+    sources:
+      - path: Sources
+
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.negelinho.braindamagefan
+        PRODUCT_NAME: BrainDamageFan
+        INFOPLIST_FILE: Info.plist
+        SWIFT_VERSION: "5.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        SUPPORTS_MACCATALYST: NO
+        ENABLE_BITCODE: NO
+        CODE_SIGN_STYLE: Automatic
+
+    scheme:
+      gatherCoverageData: false
