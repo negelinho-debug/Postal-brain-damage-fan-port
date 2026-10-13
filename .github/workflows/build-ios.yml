@@ -1,0 +1,87 @@
+name: Brain Damage Fan Port iOS v0.1
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: |
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          set -euxo pipefail
+
+          xcodegen generate
+
+          xcodebuild \
+            -project BrainDamageFan.xcodeproj \
+            -list
+
+      - name: Build unsigned iOS app
+        run: |
+          set -euxo pipefail
+
+          rm -rf build
+          rm -rf Payload
+          rm -f BrainDamageFan-v0.1-unsigned.ipa
+
+          xcodebuild \
+            -project BrainDamageFan.xcodeproj \
+            -scheme BrainDamageFan \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath "$PWD/build" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Find built app
+        run: |
+          set -euxo pipefail
+
+          APP="$PWD/build/Build/Products/Release-iphoneos/BrainDamageFan.app"
+
+          test -d "$APP"
+
+          echo "APP FOUND:"
+          du -sh "$APP"
+
+      - name: Package IPA
+        run: |
+          set -euxo pipefail
+
+          APP="$PWD/build/Build/Products/Release-iphoneos/BrainDamageFan.app"
+
+          mkdir -p Payload
+
+          cp -R "$APP" Payload/
+
+          ditto \
+            -c \
+            -k \
+            --sequesterRsrc \
+            --keepParent \
+            Payload \
+            BrainDamageFan-v0.1-unsigned.ipa
+
+          ls -lh BrainDamageFan-v0.1-unsigned.ipa
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: BrainDamageFan-v0.1-unsigned-IPA
+          path: BrainDamageFan-v0.1-unsigned.ipa
+          if-no-files-found: error
